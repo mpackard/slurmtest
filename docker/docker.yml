@@ -24,7 +24,7 @@
       - docker-buildx-plugin 
       - docker-compose-plugin
       state: present
-      notify: restart docker
+    notify: restart docker
 
   - name: docker service
     service: 
