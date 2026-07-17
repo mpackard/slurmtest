@@ -2,7 +2,14 @@
 
 - Create a Rocky 9 VM 
 - Go there and become root
-- Change slurmpass in slurm/slurm.yml (`openssl rand -hex 12` to gen something)
+- Install ansible 
+
+```
+# dnf install -y ansible
+```
+
+- Check out this repo
+- Change slurmpass var in slurm/slurm.yml (`openssl rand -hex 12` to gen something)
 - Run 
 
 ```
