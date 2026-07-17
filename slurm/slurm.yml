@@ -124,12 +124,9 @@
   #    owner: root 
   #    state: link
 
-  - name: munge key
-    copy: 
-      src: munge.key 
-      dest: /etc/munge/munge.key 
-      mode: 0400 
-      owner: munge
+  - name: create munge key
+    command: create-munge-key
+    creates: /etc/munge/munge.key
     notify: restart munge
 
   - name: slurm config
