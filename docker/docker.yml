@@ -1,0 +1,34 @@
+---
+
+# maybe rocky-specific
+
+- hosts: localhost
+  connection: local
+
+  handlers:
+
+  - name: restart docker
+    service: name=docker state=restarted
+
+  tasks: 
+
+  - name: add docker repo
+    command: dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+
+  - name: install docker packages
+    dnf:  
+      name:      
+      - docker-ce 
+      - docker-ce-cli 
+      - containerd.io 
+      - docker-buildx-plugin 
+      - docker-compose-plugin
+      state: present
+      notify: restart docker
+
+  - name: docker service
+    service: 
+      name: docker
+      state: started 
+      enabled: yes
+

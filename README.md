@@ -2,10 +2,10 @@
 
 - Create a Rocky 9 VM 
 - Go there and become root
-- Install ansible 
+- Install git & ansible 
 
 ```
-# dnf install -y ansible
+# dnf install -y git ansible
 ```
 
 - Check out this repo
@@ -28,4 +28,11 @@
 ```
 # cd 
 # ./fix-slurm-status
+```
+
+- Install docker
+
+```
+# ansible-playbook docker/docker.yml
+# docker ps 
 ```
