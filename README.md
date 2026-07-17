@@ -36,3 +36,9 @@
 # ansible-playbook docker/docker.yml
 # docker ps 
 ```
+
+- Add users that need docker access to the docker group
+
+```
+# usermod -aG docker exampleuser
+```
