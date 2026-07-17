@@ -1,0 +1,187 @@
+---
+
+# maybe rocky-specific
+
+- hosts: localhost
+  connection: local
+
+  vars:
+
+    slurmpass: changeme-07b00212407f4a52c8207d4d
+  
+  handlers:
+
+  - name: restart slurmd
+    service: name=slurmd state=restarted
+
+  - name: restart munge
+    service: name=munge state=restarted
+
+  - name: restart slurmdbd
+    service: name=slurmdbd state=restarted
+
+  - name: restart slurmctld
+    service: name=slurmctld state=restarted
+
+  tasks: 
+
+  - name: dnf install dnf-plugins-core
+    command: dnf install dnf-plugins-core -y
+ 
+#  - name: dnf config-manager --set-enabled powertools
+#    command: dnf config-manager --set-enabled powertools
+
+  - name: create slurm user
+    user: 
+      name: slurm 
+      shell: /sbin/nologin 
+      state: present
+
+  - name: add epel  
+    yum:  
+      name:      
+      - epel-release  
+      state: present
+
+  - name: install packages
+    yum:
+      name:
+      - mariadb-server
+      - slurm
+      - slurm-slurmd
+      #- slurmd
+      - slurm-slurmctld
+      - slurm-slurmdbd
+      #- ncurses
+      - munge
+      state: present
+
+  - name: start mariadb
+    service: 
+      name: mariadb
+      state: started 
+      enabled: yes
+
+  - name: mysql_slurm.sql
+    copy: 
+      src: mysql_slurm.sql
+      dest: /root/mysql_slurm.sql
+      mode: 0600
+
+  - name: rm my.cnf
+    file: 
+      path: /root/.my.cnf
+      state: absent
+
+  - name: mysql setup
+    shell: mysql < /root/mysql_slurm.sql
+    ignore_errors: yes
+
+  - name: my.cnf
+    copy: 
+      src: my.cnf
+      dest: /root/.my.cnf
+      mode: 0400
+
+#  - name: mysql.cnf
+#    copy: 
+#      src: mysql.cnf
+#      dest: /etc/my.cnf.d/mysql.cnf
+#      mode: 0644
+
+  - name: /var/spool/slurmd dir 
+    file: 
+      path: /var/spool/slurmd 
+      owner: slurm 
+      mode: 0755 
+      state: directory
+
+  - name: /var/lib/slurm/slurmctld dir
+    file: 
+      path: /var/lib/slurm/slurmctld 
+      owner: slurm 
+      mode: 0755 
+      state: directory
+
+#  - name: /var/log/slurm link
+#    file: 
+#      src: /var/log/slurm
+#      dest: /var/log/slurm
+#      owner: root 
+#      state: link
+
+#  - name: /etc/slurm link
+#    file: 
+#      src: /etc/slurm
+#      dest: /etc/slurm
+#      owner: root 
+#      state: link
+
+  #- name: /var/spool/slurm link
+  #  file: 
+  #    src: /var/spool/slurm-llnl
+  #    dest: /var/spool/slurm
+  #    owner: root 
+  #    state: link
+
+  - name: munge key
+    copy: 
+      src: munge.key 
+      dest: /etc/munge/munge.key 
+      mode: 0400 
+      owner: munge
+    notify: restart munge
+
+  - name: slurm config
+    copy: 
+      src: slurm.conf 
+      dest: /etc/slurm/slurm.conf
+    notify: restart slurmd
+
+  - name: slurmdbd config 
+    copy: 
+      src: slurmdbd.conf 
+      dest: /etc/slurm/slurmdbd.conf 
+      owner: slurm
+    notify: restart slurmdbd
+
+  - name: slurmctld systemd script
+    copy: 
+      src: slurmctld.service
+      dest: /usr/lib/systemd/system/slurmctld.service
+      owner: root
+    notify: restart slurmctld
+
+  - name: chown slurm stuff to root
+    file: 
+      dest: /etc/slurm 
+      owner: root 
+      recurse: yes
+
+  - name: munge service
+    service: name=munge state=started enabled=yes
+
+  - name: slurmdbd service 
+    service: name=slurmdbd state=started enabled=yes
+
+  - name: slurmd service
+    service: name=slurmd state=started enabled=yes
+
+  - name: slurmctld service
+    service: name=slurmctld state=started enabled=yes
+
+  - name: slurm enable node
+    shell: scontrol update nodename=localhost state=IDLE 
+    ignore_errors: yes
+
+  - name: example-job script
+    copy: 
+      src: example-job
+      dest: ~/example-job
+
+  - name: fix-slurm-status script
+    copy: 
+      src: fix-slurm-status
+      dest: ~/fix-slurm-status
+      mode: 0755
+
