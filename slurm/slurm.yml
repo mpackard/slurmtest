@@ -126,8 +126,8 @@
 
   - name: create munge key
     command: create-munge-key
-    creates: /etc/munge/munge.key
     notify: restart munge
+    ignore_errors: yes
 
   - name: slurm config
     copy: 
